@@ -8,6 +8,8 @@ from collections import Counter
 app = Flask(__name__)
 
 excluded_fillers = ['um', 'uh', 'like', 'youknow','a']
+
+# Functions returns actual output i.e summary and hashtags
 @app.get('/summary')
 def summary_api():
     url = request.args.get('url', '')
@@ -19,13 +21,14 @@ def summary_api():
     result = f"{summary}\n\n<b>Hashtags:</b>\n{', '.join(hashtags)}"
     return Response(result, content_type='text/html'), 200
 
+# Funciton returns transcript of given url
 
 def get_transcript(video_id):
     transcript_list = YouTubeTranscriptApi.get_transcript(video_id)
     transcript = ' '.join([d['text'] for d in transcript_list])
     return transcript
 
-
+# Function uses transcript to get summary of above transcript
 def get_summary(transcript):
     summariser = pipeline('summarization', model='t5-small', framework='tf',max_length = 66)
     summary = ''
@@ -36,7 +39,7 @@ def get_summary(transcript):
         summary = summary + summary_text + ' '
     return summary
 
-
+# Genrate Hastages based on genrated summary
 def get_hashtags(text, num_hashtags=10, min_length=4):
     words = word_tokenize(text)
     stop_words = set(stopwords.words("english"))
